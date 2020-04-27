@@ -1,0 +1,127 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: AWS Budget Slack Chatbot Notification per Account
+
+#-----------------------------------------------------------------------------
+#Parameters
+#-----------------------------------------------------------------------------
+Parameters:
+  ChatbotConfigName:
+    Type: String
+    Description: Name of the Chatbot Configuration
+    Default: BudgetAlarm
+
+  CostNotification:
+    Type: String
+    Description: Notification trigger for actual amount spent or how much you forecasted to spend
+    Default: ACTUAL
+    AllowedValues:
+      - ACTUAL
+      - FORECASTED
+
+  SlackChannel:
+    Type: String
+    Description: Slack Channel ID
+    Default: e.g. ABCBBLZZZ
+
+  SlackWorkspaceId:
+    Type: String
+    Description: The ID of the Slack workspace authorized with AWS Chatbot
+
+  LoggingLevel:
+    Type: String
+    Description: Logging level for Cloudwatch
+    Default: INFO
+    AllowedValues:
+      - ERROR
+      - INFO
+      - NONE
+
+  BudgetLimit:
+    Type: Number
+    Description: Budget limit in USD
+
+#-----------------------------------------------------------------------------
+#Resources
+#-----------------------------------------------------------------------------
+Resources:
+
+  ChatbotRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+          Version: 2012-10-17
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - chatbot.amazonaws.com
+              Action:
+                - sts:AssumeRole
+      Policies:
+      - PolicyName: ChatbotRole
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+              - 'cloudwatch:Describe*'
+              - 'cloudwatch:Get*'
+              - 'cloudwatch:List*'
+            Resource: '*'
+
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+     TopicName: SNS-Budget-Alarm
+
+  SNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Sid: !Ref ChatbotConfigName
+            Effect: Allow
+            Action:
+              - 'SNS:Publish'
+            Principal:
+              Service:
+                budgets.amazonaws.com
+            Resource:
+              - !Ref SNSTopic
+      Topics:
+        - !Ref SNSTopic
+
+  Budget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetLimit:
+          Amount: !Ref BudgetLimit
+          Unit: USD
+        TimeUnit: MONTHLY
+        BudgetType: COST
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: !Ref CostNotification
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+          Subscribers:
+            - SubscriptionType: SNS
+              Address:
+                !Ref SNSTopic
+
+  SlackChatbot:
+    Type: AWS::Chatbot::SlackChannelConfiguration
+    Properties:
+      ConfigurationName: !Ref ChatbotConfigName
+      IamRoleArn:
+        Fn::GetAtt:
+          - "ChatbotRole"
+          - "Arn"
+      LoggingLevel: INFO
+      SlackChannelId: !Ref SlackChannel
+      SlackWorkspaceId: !Ref SlackWorkspaceId
+      SnsTopicArns:
+        - !Ref SNSTopic

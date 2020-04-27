@@ -4,7 +4,7 @@ A cloudformation template for sending budget alarms to slack using AWS Chatbot
 
 ## Preview
 
-![Slack Notification](/.assets/slack_screenshot.png)
+![Slack Notification](/.assets/slack_preview.png)
 
 ## Prerequisites
 

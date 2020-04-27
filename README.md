@@ -15,9 +15,7 @@ A cloudformation template for sending budget alarms to slack using AWS Chatbot
 
 ![Slack Channel ID](/.assets/slack_id.png)
 
-`https://mycompany.slack.com/archives/ABCBBLZZZ`
-
-The Channel ID is everything after  `/archives/`
+`https://mycompany.slack.com/archives/SlackChannelId`
 
 
 ## Installation

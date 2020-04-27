@@ -1,6 +1,6 @@
 # aws-budget-alarms
 
-A cloudformation template for sending budget alarms to slack using AWS Chatbot
+A CloudFormation template for sending budget alarms to slack using AWS Chatbot
 
 ## Preview
 
@@ -8,7 +8,7 @@ A cloudformation template for sending budget alarms to slack using AWS Chatbot
 
 ## Prerequisites
 
-- Configure a chat client in AWS Chatbot
+- [Configure a chat client in AWS Chatbot](https://docs.aws.amazon.com/chatbot/latest/adminguide/setting-up.html)
 - Invite the AWS Chatbot to your Slack channel: `/invite @aws`
 
 - Slack channel ID: right-clicking the channel you want to use > Additional Options > Copy Link
